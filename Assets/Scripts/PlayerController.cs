@@ -5,18 +5,21 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
- // Configurable parameters for speed, jump height, gravity, respawn height, and deceleration rate
+ // Configurable parameters for speed, jump height, gravity, respawn height, acceleration rate, and deceleration rate
  public float speed = 6.0F;
  public float jumpSpeed = 8.0F;
  public float gravity = 20.0F;
  public float respawnHeight = -10.0F;
+ public float acceleration = 0.5f;
  public float deceleration = 0.5f;
+ 
 
  private Vector3 moveDirection = Vector3.zero;  // The current movement direction
  private Vector3 startPosition;  // The original position for respawning
  private CharacterController controller;  // Reference to the character controller
  private float horizontalInput;  // Current horizontal input (from -1 to 1)
  private float verticalInput;  // Current vertical input (from -1 to 1)
+ private float currentSpeed = 0.0f;  // Current speed, will increase with acceleration
 
  void Start()
  {
@@ -77,7 +80,11 @@ public class PlayerController : MonoBehaviour
   Vector3 targetMoveDirection = new Vector3( horizontalInput , 0 , verticalInput );
   targetMoveDirection.Normalize();
   targetMoveDirection = transform.TransformDirection( targetMoveDirection );
-  targetMoveDirection *= speed;
+  targetMoveDirection *= currentSpeed;
+
+  // Increase current speed based on acceleration
+  currentSpeed += acceleration * Time.deltaTime;
+  currentSpeed = Mathf.Min( currentSpeed , speed );  // Cap current speed at the defined speed
 
   // Update the horizontal and vertical components of the movement direction
   moveDirection.x = targetMoveDirection.x;
@@ -107,5 +114,7 @@ public class PlayerController : MonoBehaviour
   // Decelerate the horizontal and vertical components of the movement direction
   moveDirection.x = Mathf.Lerp( moveDirection.x , 0 , deceleration * Time.deltaTime );
   moveDirection.z = Mathf.Lerp( moveDirection.z , 0 , deceleration * Time.deltaTime );
+  // Also decelerate the current speed
+  currentSpeed = Mathf.Lerp( currentSpeed , 0 , deceleration * Time.deltaTime );
  }
 }
