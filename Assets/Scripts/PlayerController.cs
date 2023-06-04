@@ -27,18 +27,21 @@ public class PlayerController : MonoBehaviour
   startPosition = transform.position;
   controller = GetComponent<CharacterController>();
  }
-
+ private void Update()
+ {
+  // Check if the player has fallen below the respawn height
+  if ( transform.position.y < respawnHeight )
+  {
+   Respawn();
+  }
+ }
  void FixedUpdate()
  {
   // Update the inputs and handle movement
   UpdateInput();
   HandleMovement();
 
-  // Check if the player has fallen below the respawn height
-  if ( transform.position.y < respawnHeight )
-  {
-   Respawn();
-  }
+
 
   // Execute the movement
   controller.Move( moveDirection * Time.deltaTime );
