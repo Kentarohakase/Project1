@@ -5,42 +5,107 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
+ // Configurable parameters for speed, jump height, gravity, respawn height, and deceleration rate
  public float speed = 6.0F;
  public float jumpSpeed = 8.0F;
  public float gravity = 20.0F;
  public float respawnHeight = -10.0F;
+ public float deceleration = 0.5f;
 
- private Vector3 moveDirection = Vector3.zero;
- private Vector3 startPosition;
- private CharacterController controller;
+ private Vector3 moveDirection = Vector3.zero;  // The current movement direction
+ private Vector3 startPosition;  // The original position for respawning
+ private CharacterController controller;  // Reference to the character controller
+ private float horizontalInput;  // Current horizontal input (from -1 to 1)
+ private float verticalInput;  // Current vertical input (from -1 to 1)
 
  void Start()
  {
-  // Speichert die Startposition und den Charakter-Controller
+  // Save the starting position and get the character controller
   startPosition = transform.position;
   controller = GetComponent<CharacterController>();
  }
 
- void Update()
+ void FixedUpdate()
  {
-  if ( controller.isGrounded )
-  {
-   moveDirection = new Vector3( Input.GetAxis( "Horizontal" ) , 0 , Input.GetAxis( "Vertical" ) );
-   moveDirection = transform.TransformDirection( moveDirection );
-   moveDirection *= speed;
+  // Update the inputs and handle movement
+  UpdateInput();
+  HandleMovement();
 
-   if ( Input.GetButton( "Jump" ) )
-   {
-    moveDirection.y = jumpSpeed;
-   }
-  }
-
-  moveDirection.y -= gravity * Time.deltaTime;
-  controller.Move( moveDirection * Time.deltaTime );
-
+  // Check if the player has fallen below the respawn height
   if ( transform.position.y < respawnHeight )
   {
-   transform.position = startPosition;
+   Respawn();
   }
+
+  // Execute the movement
+  controller.Move( moveDirection * Time.deltaTime );
+ }
+
+ private void UpdateInput()
+ {
+  // Retrieve and save the horizontal and vertical input
+  horizontalInput = Input.GetAxis( "Horizontal" );
+  verticalInput = Input.GetAxis( "Vertical" );
+ }
+
+ private void HandleMovement()
+ {
+  // Prepare the move if a movement key is pressed
+  if ( horizontalInput != 0 || verticalInput != 0 )
+  {
+   PrepareMove();
+  }
+  // Decelerate the move if the player is on the ground and no movement key is pressed
+  else if ( controller.isGrounded )
+  {
+   Decelerate();
+  }
+
+  // Jump if the player is on the ground and the jump key is pressed
+  if ( controller.isGrounded && Input.GetButton( "Jump" ) )
+  {
+   Jump();
+  }
+
+  // Apply gravity
+  ApplyGravity();
+ }
+
+ private void PrepareMove()
+ {
+  // Calculate the desired movement direction based on player input
+  Vector3 targetMoveDirection = new Vector3( horizontalInput , 0 , verticalInput );
+  targetMoveDirection.Normalize();
+  targetMoveDirection = transform.TransformDirection( targetMoveDirection );
+  targetMoveDirection *= speed;
+
+  // Update the horizontal and vertical components of the movement direction
+  moveDirection.x = targetMoveDirection.x;
+  moveDirection.z = targetMoveDirection.z;
+ }
+
+ private void Jump()
+ {
+  // Set the vertical component of the movement direction to the jump height
+  moveDirection.y = jumpSpeed;
+ }
+
+ private void ApplyGravity()
+ {
+  // Apply gravity to the vertical component of the movement direction
+  moveDirection.y -= gravity * Time.deltaTime;
+ }
+
+ private void Respawn()
+ {
+  // Reset the player position to the starting position
+  transform.position = startPosition;
+ }
+
+ private void Decelerate()
+ {
+  // Decelerate the horizontal and vertical components of the movement direction
+  moveDirection.x = Mathf.Lerp( moveDirection.x , 0 , deceleration * Time.deltaTime );
+  moveDirection.z = Mathf.Lerp( moveDirection.z , 0 , deceleration * Time.deltaTime );
  }
 }
