@@ -564,11 +564,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 4.03
+  sprintSpeedMultiplier: 1.5
   jumpSpeed: 8
   gravity: 20
   respawnHeight: -10
-  acceleration: 3.5
   deceleration: 3.5
+  acceleration: 3.5
 --- !u!1 &1465888827
 GameObject:
   m_ObjectHideFlags: 0
